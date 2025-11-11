@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulateur photo – GC Epox-Design</title>
+  <meta name="description" content="Appliquez une teinte RAL et une finition sur votre propre photo (thermolaquage).">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img src="logo.png" alt="GC Epox-Design" onerror="this.style.display='none'">
+      <div>
+        <h1>Simulateur photo</h1>
+        <p class="tag">Importer une photo • Teinte RAL • Finitions • Export PNG</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel card">
+      <div class="controls">
+        <label>Importer une photo
+          <input type="file" id="photoInput" accept="image/*">
+        </label>
+
+        <label>Outil
+          <select id="tool">
+            <option value="magic" selected>Baguette magique</option>
+            <option value="brush">Pinceau</option>
+          </select>
+        </label>
+
+        <div id="magicControls" class="row">
+          <label>Tolérance
+            <input type="range" id="tolerance" min="1" max="100" value="30">
+          </label>
+          <label>Adoucir bords
+            <input type="range" id="feather" min="0" max="8" value="2">
+          </label>
+        </div>
+
+        <div id="brushControls" class="row" style="display:none">
+          <label>Brosse (px)
+            <input type="range" id="brush" min="5" max="100" value="30">
+          </label>
+          <label><input type="checkbox" id="eraser"> Gomme</label>
+        </div>
+
+        <label>Couleur RAL
+          <select id="ral"></select>
+        </label>
+
+        <label>Finition
+          <select id="finition">
+            <option value="mat">Mat</option>
+            <option value="satine">Satiné</option>
+            <option value="brillant" selected>Brillant</option>
+            <option value="sable_fin">Sablé fin</option>
+            <option value="sable_epais">Sablé épais</option>
+          </select>
+        </label>
+
+        <label>Intensité teinte
+          <input type="range" id="strength" min="0" max="100" value="70">
+        </label>
+
+        <div class="actions">
+          <button id="undo" class="btn ghost">Annuler</button>
+          <button id="clearMask" class="btn ghost">Effacer</button>
+          <button id="export" class="btn primary">Exporter PNG</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage card">
+      <div class="photo-stage">
+        <canvas id="photoCanvas"></canvas>   <!-- image -->
+        <canvas id="maskCanvas"></canvas>    <!-- masque (peinture / sélection) -->
+        <canvas id="outCanvas"></canvas>     <!-- rendu final -->
+      </div>
+      <p class="hint">Astuce : avec la <b>baguette magique</b>, clique sur une zone de couleur proche. Ajuste la <b>tolérance</b> et <b>adoucir bords</b> si besoin.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    © GC Epox-Design — Simulation indicative (teintes à valider sur nuancier).
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
