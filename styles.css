@@ -1,13 +1,30 @@
+/* =========================
+   GC Epox-Design • styles.css
+   Thème : fond carbone + accents bleus
+   ========================= */
+
 :root{
-  --bg:#0b0c0f; --text:#e6e9ef; --muted:#9aa0ac;
-  --card:#11141a; --border:#1f2633;
-  --primary:#2196f3; --primary-ink:#fff;
+  --bg:#0b0c0f;        /* fond carbone */
+  --text:#e6e9ef;      /* texte principal */
+  --muted:#9aa0ac;     /* texte secondaire */
+  --card:#11141a;      /* cartes / panneaux */
+  --border:#1f2633;    /* bordures discrètes */
+  --primary:#2196f3;   /* bleu d’accent */
+  --primary-ink:#ffffff;
 }
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif}
+html,body{
+  margin:0;
+  padding:0;
+  color:var(--text);
+  background:var(--bg);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
 
-/* Fond carbone */
+/* --- Fond carbone texturé --- */
 body{
   background-image:
     radial-gradient(circle at 1px 1px, #1b1c1f 1px, transparent 0),
@@ -15,31 +32,146 @@ body{
   background-size:6px 6px;
 }
 
-/* Header */
-.site-header{background:linear-gradient(180deg,#0b0c0f,#141922);border-bottom:1px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,.5)}
-.brand{max-width:1100px;margin:0 auto;padding:16px;display:flex;align-items:center;gap:12px}
-.brand img{width:48px;height:48px;object-fit:contain}
-.brand h1{margin:0;font-size:1.25rem;color:var(--primary)}
-.brand .tag{margin:2px 0 0 0;color:var(--muted);font-size:.95rem}
+/* =========================
+   En-tête / branding
+   ========================= */
+.site-header{
+  background:linear-gradient(180deg,#0b0c0f 0%, #141922 100%);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+.brand{
+  max-width:1100px;
+  margin:0 auto;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand img{
+  width:48px; height:48px; object-fit:contain;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.25));
+}
+.brand h1{
+  margin:0;
+  font-size:1.25rem;
+  color:var(--primary);
+  letter-spacing:.2px;
+}
+.brand .tag{
+  margin:2px 0 0 0;
+  color:var(--muted);
+  font-size:.95rem;
+}
 
-/* Layout */
-main{max-width:1100px;margin:18px auto;padding:0 16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 3px 8px rgba(0,0,0,.6)}
-.panel{margin-bottom:12px}
-.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;padding:14px}
-label{display:flex;flex-direction:column;gap:6px;font-weight:600}
-select,input[type="file"],input[type="range"]{padding:10px 12px;border:1px solid #2a3140;border-radius:10px;background:#0d111a;color:var(--text)}
-.row{display:flex;gap:12px;align-items:center}
-.actions{display:flex;gap:10px;margin-left:auto}
-.btn{padding:11px 16px;border-radius:10px;border:1px solid var(--primary);font-weight:700;cursor:pointer}
-.btn.primary{background:var(--primary);color:var(--primary-ink)}
-.btn.ghost{background:transparent;color:var(--primary)}
-.btn:hover{filter:brightness(1.1)}
+/* =========================
+   Layout principal
+   ========================= */
+main{
+  max-width:1100px;
+  margin:18px auto;
+  padding:0 16px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:0 3px 8px rgba(0,0,0,.6);
+}
+.panel{ margin-bottom:12px; }
+.controls{
+  display:flex; flex-wrap:wrap; gap:12px; align-items:end;
+  padding:14px;
+}
+label{
+  display:flex; flex-direction:column; gap:6px;
+  font-weight:600;
+}
 
-/* Zone photo (3 canvas superposés) */
-.stage{padding:14px}
-.photo-stage{position:relative;width:100%;aspect-ratio:16/9;background:#0d111a;border-radius:10px;overflow:hidden;border:1px solid var(--border);box-shadow:0 3px 8px rgba(0,0,0,.6)}
-.photo-stage canvas{position:absolute;inset:0;width:100%;height:100%}
+/* Inputs */
+select,
+input[type="file"],
+input[type="range"]{
+  padding:10px 12px;
+  border:1px solid #2a3140;
+  border-radius:10px;
+  background:#0d111a;
+  color:var(--text);
+  font-size:.95rem;
+}
+input[type="range"]{ padding:6px 8px; }
+.row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
 
-.hint{color:var(--muted);margin:10px 2px 0}
-.site-footer{text-align:center;color:var(--muted);padding:18px}
+/* Actions / boutons */
+.actions{ display:flex; gap:10px; margin-left:auto; }
+.btn{
+  padding:11px 16px;
+  border-radius:10px;
+  border:1px solid var(--primary);
+  font-weight:700;
+  cursor:pointer;
+  transition:filter .15s, transform .02s;
+}
+.btn:active{ transform:translateY(1px); }
+.btn.primary{ background:var(--primary); color:var(--primary-ink); }
+.btn.ghost{ background:transparent; color:var(--primary); }
+.btn:hover{ filter:brightness(1.08); }
+
+/* =========================
+   Scène photo (3 canvas)
+   ========================= */
+.stage{ padding:14px; }
+.photo-stage{
+  position:relative;
+  width:100%;
+  aspect-ratio:16 / 9;
+  background:#0d111a;
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 3px 8px rgba(0,0,0,.6);
+}
+
+/* Canvases empilés */
+.photo-stage canvas{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  /* Mobile: éviter scroll/zoom pendant dessin ou sélection */
+  touch-action:none;
+}
+
+/* Texte d’aide / footer */
+.hint{ color:var(--muted); margin:10px 2px 0; }
+.site-footer{
+  text-align:center;
+  color:var(--muted);
+  padding:18px;
+  font-size:.95rem;
+}
+
+/* =========================
+   Accessibilité & responsive
+   ========================= */
+:focus-visible{
+  outline:3px solid rgba(33,150,243,.35);
+  outline-offset:2px;
+  border-radius:10px;
+}
+@media (max-width:780px){
+  .brand h1{ font-size:1.05rem; }
+  .controls{ padding:12px; gap:10px; }
+  .actions{ width:100%; justify-content:flex-start; margin-left:0; }
+  .btn{ padding:10px 14px; }
+}
+@media (max-width:420px){
+  .brand{ gap:10px; }
+  .brand img{ width:42px; height:42px; }
+  .brand .tag{ font-size:.9rem; }
+  select, input[type="file"], input[type="range"]{ font-size:.9rem; }
+}
+
+/* =========================
+   Utilitaires (si besoin)
+   ========================= */
+.hidden{ display:none !important; }
+.center{ display:grid; place-items:center; }
