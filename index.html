@@ -1,93 +1,1060 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simulateur photo – GC Epox-Design</title>
-  <meta name="description" content="Appliquez une teinte RAL et une finition sur votre propre photo (thermolaquage).">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GC PERFORMANCE — Fiches véhicules</title>
+
+  <!-- Icône d’app / favicon -->
+  <link rel="icon" type="image/png" href="gc_performance_icon_1024.png" />
+
+  <!-- Firebase (App + Firestore en compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root{
+      --red:#ef233c;
+      --panel:#0f172a;
+      --stroke:#1f2937;
+      --text:#e5e7eb;
+      --bg:#050816;
+    }
+    *{box-sizing:border-box}
+
+    /* Écran global */
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+      color:var(--text);
+      background:radial-gradient(circle at top,#1f2937 0,#020617 55%,#000 100%);
+    }
+    main{
+      max-width:900px;
+      margin:0 auto 32px;
+      padding:8px;
+    }
+
+    /* HEADER */
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      padding:10px 14px 6px;
+      background:rgba(3,7,18,0.92);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(148,163,184,.3);
+    }
+    .header-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .header-top h1{
+      margin:0;
+      flex:1;
+      text-align:center;
+      font-size:1.6rem;
+      font-weight:800;
+      letter-spacing:.04em;
+      color:#fff;
+    }
+    .brand-logo{
+      width:40px;
+      height:40px;
+      object-fit:contain;
+      filter:drop-shadow(0 0 8px rgba(239,35,60,0.7));
+    }
+    header .buttons{
+      margin-top:10px;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* Boutons & champs */
+    button,input,select,textarea{
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #243041;
+      background:#020617;
+      color:var(--text);
+      font-size:.9rem;
+    }
+    button{
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+    }
+    button.primary{
+      background:var(--red);
+      border-color:#b91c1c;
+      color:#fff;
+      font-weight:600;
+    }
+    button.danger{
+      background:#7f1d1d;
+      border-color:#ef4444;
+      color:#fee2e2;
+    }
+    button:disabled{
+      opacity:.6;
+      cursor:default;
+    }
+
+    .hidden{display:none}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+
+    /* Cartes */
+    .card{
+      background:rgba(15,23,42,0.72);
+      border:1px solid rgba(148,163,184,0.35);
+      border-radius:14px;
+      padding:18px;
+      margin:18px auto;
+      box-shadow:0 18px 45px rgba(0,0,0,0.6);
+      backdrop-filter:blur(10px);
+    }
+
+    /* Tables */
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border-top:1px solid #23303a;padding:8px}
+    .table th{
+      background:rgba(15,23,42,0.85);
+      font-size:.9rem;
+    }
+    .muted{opacity:.7;font-size:.85rem}
+
+    /* Bannière (erreurs éventuelles) */
+    .banner{
+      background:#7f1d1d;
+      border:1px solid #ef4444;
+      color:#fee2e2;
+      padding:8px;
+      border-radius:8px;
+      margin:10px auto 0;
+      max-width:900px;
+      font-size:.9rem;
+    }
+
+    /* Focus champs */
+    input:focus,textarea:focus,select:focus{
+      outline:none;
+      border-color:var(--red);
+      box-shadow:0 0 0 1px rgba(239,35,60,0.5);
+    }
+
+    /* Groupes de contrôle */
+    .check-group{
+      transition:all .2s;
+      border-radius:10px;
+      overflow:hidden;
+      border:1px solid rgba(255,0,0,0.4);
+      margin-bottom:12px;
+      box-shadow:0 0 10px rgba(255,0,0,0.25);
+    }
+    .check-group-header{
+      cursor:pointer;
+    }
+    .check-group-header th{
+      padding:10px 8px;
+      background:#020617;
+      color:#fff;
+      text-align:left;
+      font-size:.9rem;
+      border-bottom:1px solid #3b0a0c;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .check-group-header .icon{
+      font-size:1rem;
+      color:#fca5a5;
+    }
+    .check-group-header .chevron{
+      margin-left:auto;
+      font-size:.9rem;
+      opacity:.8;
+    }
+    .check-items{
+      display:none;
+      background:#0f172a;
+    }
+    .check-group.open{
+      box-shadow:0 0 18px rgba(255,0,0,0.45);
+      border-color:#ff4a4a;
+    }
+    .check-group.open .check-items{
+      display:table-row-group;
+    }
+
+    /* Colonnes fiche contrôle */
+    .table-check th:nth-child(1){width:40%;}
+    .table-check th:nth-child(2),
+    .table-check th:nth-child(3){
+      width:10%;
+      text-align:center;
+    }
+    .table-check th:nth-child(4){width:40%;}
+    .table-check td:nth-child(2),
+    .table-check td:nth-child(3){
+      text-align:center;
+    }
+
+    .check-comment{
+      width:100%;
+      font-size:.85rem;
+      padding:8px 7px;
+      border-radius:6px;
+    }
+
+    .cell-choice{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+    }
+    .col-icon{
+      font-size:1.1rem;
+      display:inline-block;
+    }
+
+    /* Pièces */
+    .table-parts{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+    }
+    .table-parts th,
+    .table-parts td{
+      padding:4px 2px;
+      font-size:.78rem;
+    }
+    .table-parts th:nth-child(1),
+    .table-parts td:nth-child(1){width:16%;}
+    .table-parts th:nth-child(2),
+    .table-parts td:nth-child(2){width:48%;}
+    .table-parts th:nth-child(3),
+    .table-parts td:nth-child(3){
+      width:14%;
+      text-align:center;
+    }
+    .table-parts th:nth-child(4),
+    .table-parts td:nth-child(4){
+      width:22%;
+      text-align:center;
+    }
+    .table-parts td input{
+      width:100%;
+      font-size:.8rem;
+      padding:6px 6px;
+    }
+    .table-parts td:nth-child(3) input{
+      max-width:70px;
+      margin:0 auto;
+    }
+    .table-parts td:nth-child(4) button{
+      width:auto;
+      padding:3px 6px;
+      font-size:.7rem;
+      border-radius:6px;
+      justify-content:center;
+    }
+
+    /* Pneus */
+    .pneu-wrapper{
+      border:1px solid rgba(255,0,0,0.4);
+      box-shadow:0 0 10px rgba(255,0,0,0.25);
+      border-radius:10px;
+      margin-top:12px;
+      overflow:hidden;
+    }
+    .pneu-header{
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 10px;
+      background:#020617;
+      font-weight:600;
+    }
+    .pneu-header .chevron{
+      margin-left:auto;
+      font-size:.85rem;
+      opacity:.8;
+    }
+    #pneuBlock.collapsed{
+      display:none;
+    }
+
+    /* Lock screen mot de passe */
+    #lockscreen{
+      position:fixed;
+      inset:0;
+      background:radial-gradient(circle at top,#020617 0,#000 55%);
+      backdrop-filter:blur(8px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+    }
+    #lockbox{
+      background:rgba(15,23,42,0.9);
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,0.4);
+      padding:24px 22px 20px;
+      width:320px;
+      text-align:center;
+      box-shadow:0 18px 40px rgba(0,0,0,0.7);
+    }
+    #lockbox h2{
+      margin:0 0 6px;
+      color:var(--red);
+    }
+    #lockbox p{
+      margin:0 0 10px;
+      font-size:.9rem;
+    }
+
+    /* Timer dans la liste */
+    .timer-block{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:.8rem;
+    }
+    .timer-block .label{
+      opacity:.75;
+    }
+    .timer-display{
+      min-width:78px;
+      text-align:center;
+      font-variant-numeric:tabular-nums;
+    }
+    .timer-btn{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.8rem;
+      line-height:1;
+    }
+
+    /* Smartphone */
+    @media (max-width:700px){
+      .header-top h1{font-size:1.35rem}
+      .brand-logo{width:32px;height:32px}
+      .card{padding:14px}
+      button,input,select,textarea{font-size:.85rem;padding:9px}
+      .timer-block{flex-wrap:wrap;justify-content:flex-end}
+    }
+
+    /* Impression */
+    @media print{
+      @page{ size:A4 portrait; margin:10mm; }
+      body{
+        background:#ffffff !important;
+        color:#000 !important;
+      }
+      header,#lockscreen,.no-print{display:none !important}
+      .card{
+        background:#fff !important;
+        border:1px solid #ccc !important;
+        box-shadow:none !important;
+      }
+      .check-group,.pneu-wrapper{
+        border-color:#ccc !important;
+        box-shadow:none !important;
+      }
+      #pneuBlock{display:block !important;}
+    }
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">
-      <img src="logo.png" alt="GC Epox-Design" onerror="this.style.display='none'">
-      <div>
-        <h1>Simulateur photo</h1>
-        <p class="tag">Importer une photo • Teinte RAL • Finitions • Export PNG</p>
+
+<!-- Écran mot de passe -->
+<div id="lockscreen">
+  <div id="lockbox">
+    <h2>GC PERFORMANCE</h2>
+    <p>Entrer le mot de passe pour accéder aux fiches.</p>
+    <input id="pwd" type="password" placeholder="Mot de passe" style="width:100%;margin-bottom:8px;">
+    <button class="primary" style="width:100%;" onclick="checkPwd()">Entrer</button>
+    <p id="pwdErr" style="color:#f97373;display:none;margin-top:6px;font-size:.85rem;">
+      Mot de passe incorrect
+    </p>
+  </div>
+</div>
+
+<header>
+  <div class="header-top">
+    <img src="logo_gc_header_600.png" alt="GC Performance" class="brand-logo">
+    <h1>GC PERFORMANCE</h1>
+    <img src="logo_gc_header_600.png" alt="GC Performance" class="brand-logo">
+  </div>
+  <div class="buttons">
+    <button id="btnNew" class="primary" onclick="openEditor()">➕ Nouvelle fiche</button>
+    <button onclick="window.print()">📄 PDF (A4)</button>
+  </div>
+</header>
+
+<div id="banner" class="banner hidden"></div>
+
+<main>
+  <!-- LISTE -->
+  <div id="list" class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="row">
+        <input id="qImmat" placeholder="Rechercher immatriculation…" oninput="renderList()">
+        <select id="qStatus" onchange="renderList()">
+          <option value="">Tous</option>
+          <option value="en_cours">En cours</option>
+          <option value="termine">Terminé</option>
+        </select>
+      </div>
+      <div class="row">
+        <button onclick="exportJSON()">📤 Exporter JSON</button>
       </div>
     </div>
-  </header>
 
-  <main>
-    <section class="panel card">
-      <div class="controls">
-        <label>Importer une photo
-          <input type="file" id="photoInput" accept="image/*">
-        </label>
+    <div id="listBody" style="margin-top:10px"></div>
+    <p id="empty" class="muted">Aucun dossier</p>
+  </div>
 
-        <label>Outil
-          <select id="tool">
-            <option value="magic" selected>Baguette magique</option>
-            <option value="brush">Pinceau</option>
-          </select>
-        </label>
-
-        <div id="magicControls" class="row">
-          <label>Tolérance
-            <input type="range" id="tolerance" min="1" max="100" value="30">
-          </label>
-          <label>Adoucir bords
-            <input type="range" id="feather" min="0" max="8" value="2">
-          </label>
-        </div>
-
-        <div id="brushControls" class="row" style="display:none">
-          <label>Brosse (px)
-            <input type="range" id="brush" min="5" max="100" value="30">
-          </label>
-          <label><input type="checkbox" id="eraser"> Gomme</label>
-        </div>
-
-        <label>Couleur RAL
-          <select id="ral"></select>
-        </label>
-
-        <label>Finition
-          <select id="finition">
-            <option value="mat">Mat</option>
-            <option value="satine">Satiné</option>
-            <option value="brillant" selected>Brillant</option>
-            <option value="sable_fin">Sablé fin</option>
-            <option value="sable_epais">Sablé épais</option>
-          </select>
-        </label>
-
-        <label>Intensité teinte
-          <input type="range" id="strength" min="0" max="100" value="70">
-        </label>
-
-        <div class="actions">
-          <button id="undo" class="btn ghost">Annuler</button>
-          <button id="clearMask" class="btn ghost">Effacer</button>
-          <button id="export" class="btn primary">Exporter PNG</button>
-        </div>
+  <!-- ÉDITEUR -->
+  <div id="editor" class="card hidden">
+    <div class="row no-print" style="justify-content:space-between">
+      <button onclick="closeEditor()">← Retour</button>
+      <div class="row">
+        <button id="btnDelete" class="danger hidden" onclick="deleteFiche()">🗑️ Supprimer</button>
+        <button onclick="window.print()">📄 PDF</button>
+        <button id="btnSave" class="primary" onclick="saveFiche()">💾 Enregistrer</button>
       </div>
-    </section>
+    </div>
 
-    <section class="stage card">
-      <div class="photo-stage">
-        <canvas id="photoCanvas"></canvas>   <!-- image -->
-        <canvas id="maskCanvas"></canvas>    <!-- masque (peinture / sélection) -->
-        <canvas id="outCanvas"></canvas>     <!-- rendu final -->
+    <h3>Identité véhicule</h3>
+    <div class="grid">
+      <div><label>Immatriculation</label><input id="f_immat" placeholder="AA-123-BB"></div>
+      <div><label>Kilométrage (km)</label><input id="f_km" type="number" min="0"></div>
+      <div><label>Marque / Modèle</label><input id="f_model" placeholder="Peugeot 308"></div>
+      <div><label>Date</label><input id="f_date" type="date"></div>
+      <div><label>Client</label><input id="f_client" placeholder="Nom / Entreprise"></div>
+      <div><label>Nom du mécano</label><input id="f_mech" placeholder="Prénom"></div>
+      <div>
+        <label>Statut</label>
+        <select id="f_status">
+          <option value="en_cours">En cours</option>
+          <option value="termine">Terminé</option>
+        </select>
       </div>
-      <p class="hint">Astuce : avec la <b>baguette magique</b>, clique sur une zone de couleur proche. Ajuste la <b>tolérance</b> et <b>adoucir bords</b> si besoin.</p>
-    </section>
-  </main>
+    </div>
 
-  <footer class="site-footer">
-    © GC Epox-Design — Simulation indicative (teintes à valider sur nuancier).
-  </footer>
+    <h3 style="margin-top:12px">Travaux à faire</h3>
+    <textarea id="f_todoNow" style="width:100%;height:120px"></textarea>
 
-  <script src="app.js"></script>
+    <h3 style="margin-top:12px">FICHE DE CONTRÔLE</h3>
+    <div style="overflow:auto">
+      <table class="table table-check" style="min-width:880px">
+        <thead>
+          <tr>
+            <th>Rubrique / Contrôle</th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="checkBody"></tbody>
+      </table>
+    </div>
+
+    <!-- PNEUS -->
+    <div class="pneu-wrapper">
+      <div class="pneu-header no-print" onclick="togglePneus()">
+        <span>🚗 Pneumatiques</span>
+        <span class="chevron" id="pneuChevron">►</span>
+      </div>
+      <div id="pneuBlock" class="collapsed">
+        <table class="table">
+          <thead>
+            <tr><th>Roue</th><th>État</th><th>Pression (bar)</th></tr>
+          </thead>
+          <tbody id="tiresBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CARNET D’ENTRETIEN -->
+    <h4 style="margin-top:15px; margin-bottom:6px;">Carnet d’entretien</h4>
+    <table class="table table-check" style="min-width:300px">
+      <tr>
+        <td style="width:40%">Carnet d’entretien</td>
+        <td style="text-align:center;">
+          <div class="cell-choice">
+            <input type="radio" name="carnetEntretien" id="ce_ok">
+            <span class="col-icon">✅</span>
+          </div>
+        </td>
+        <td style="text-align:center;">
+          <div class="cell-choice">
+            <input type="radio" name="carnetEntretien" id="ce_bad">
+            <span class="col-icon">❌</span>
+          </div>
+        </td>
+        <td></td>
+      </tr>
+    </table>
+
+    <h4 style="margin-top:12px">Travaux à prévoir</h4>
+    <textarea id="f_todoLater" style="width:100%;height:80px"></textarea>
+
+    <h4 style="margin-top:12px">Observations</h4>
+    <textarea id="f_obs" style="width:100%;height:80px"></textarea>
+
+    <h4 style="margin-top:12px">Pièces prises / référencées</h4>
+    <table class="table table-parts">
+      <thead>
+        <tr><th>Réf</th><th>Désignation</th><th>Qté</th><th class="no-print">Action</th></tr>
+      </thead>
+      <tbody id="partsBody"></tbody>
+    </table>
+
+    <div class="row no-print">
+      <button class="primary" onclick="addPartRow()">➕ Ajouter une pièce</button>
+    </div>
+  </div>
+</main>
+
+<script>
+  /* ========= MOT DE PASSE ========= */
+  function checkPwd(){
+    const v=document.getElementById('pwd').value;
+    if(v==="08092012"){
+      initAudio(); // autorise l'audio après action utilisateur
+      if(audioCtx && audioCtx.state==="suspended"){ audioCtx.resume(); }
+      document.getElementById('lockscreen').style.display='none';
+    }else{
+      document.getElementById('pwdErr').style.display='block';
+    }
+  }
+
+  /* ========= FIREBASE ========= */
+  const firebaseConfig = {
+    apiKey: "AIzaSyCHOGozD-PwGBo4u0FI_WZglnnZZ8rQGY0",
+    authDomain: "fiche-de-trail-serveur.firebaseapp.com",
+    projectId: "fiche-de-trail-serveur",
+    storageBucket: "fiche-de-trail-serveur.firebasestorage.app",
+    messagingSenderId: "1015778929217",
+    appId: "1:1015778929217:web:a8fb461392152b1d26f4c0"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let itemsCache = [];
+  let unsubscribe = null;
+  let autoSaveTimer = null;
+  let lastState = {};
+  let nowTs = Date.now();
+
+  /* ========= AUDIO (sons) ========= */
+  let audioCtx = null;
+  function initAudio(){
+    if(!audioCtx){
+      try{
+        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      }catch(e){
+        console.warn("Audio non supporté",e);
+      }
+    }
+  }
+  function beep(freq=880,duration=0.12){
+    if(!audioCtx) return;
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    osc.frequency.value=freq;
+    osc.type="sine";
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const t=audioCtx.currentTime;
+    gain.gain.setValueAtTime(0.0001,t);
+    gain.gain.exponentialRampToValueAtTime(0.2,t+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001,t+duration);
+    osc.start(t);
+    osc.stop(t+duration+0.02);
+  }
+  function playSound(type){
+    if(type==='new')  beep(900,0.12);
+    if(type==='done') beep(500,0.16);
+  }
+
+  /* ========= AUTOSAVE ========= */
+  function scheduleAutoSave(){
+    const immat=(document.getElementById('f_immat')?.value||"").trim().toUpperCase();
+    if(!immat) return;
+    if(autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer=setTimeout(()=>saveFiche(true),1000);
+  }
+
+  /* ========= TEMPS RÉEL FIRESTORE ========= */
+  function initRealtime(){
+    if(unsubscribe) unsubscribe();
+
+    unsubscribe = db.collection("fiches")
+      .orderBy("createdAt","desc")
+      .onSnapshot(snap=>{
+        const newState={};
+        const hadPrev=Object.keys(lastState).length>0;
+        const tmpItems=[];
+        snap.forEach(doc=>{
+          const data=doc.data();
+          newState[doc.id]=data.status||"";
+          tmpItems.push(data);
+        });
+
+        if(hadPrev){
+          snap.forEach(doc=>{
+            const data=doc.data();
+            const id=doc.id;
+            const prev=lastState[id];
+            const curr=data.status||"";
+            if(prev===undefined){
+              playSound('new');
+            }else if(prev!=='termine' && curr==='termine'){
+              playSound('done');
+            }
+          });
+        }
+
+        lastState=newState;
+        itemsCache=tmpItems;
+        renderList();
+        updateTimers();
+      },err=>{
+        console.error(err);
+        alert("Erreur Firestore : "+err.message);
+      });
+  }
+
+  /* ========= TIMER ========= */
+  function formatDuration(ms){
+    if(!ms || ms<0) ms=0;
+    const sec=Math.floor(ms/1000);
+    const h=String(Math.floor(sec/3600)).padStart(2,'0');
+    const m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+    const s=String(sec%60).padStart(2,'0');
+    return `${h}:${m}:${s}`;
+  }
+
+  function updateTimers(){
+    itemsCache.forEach(d=>{
+      const el=document.getElementById('timer-'+d.id);
+      if(!el) return;
+      let total=d.timerTotalMs||0;
+      if(d.timerRunning && d.timerStartAt){
+        total += (nowTs - d.timerStartAt);
+      }
+      el.textContent=formatDuration(total);
+    });
+  }
+
+  async function startTimer(id){
+    initAudio();
+    if(audioCtx && audioCtx.state==="suspended"){ audioCtx.resume(); }
+
+    const fiche=itemsCache.find(x=>x.id===id);
+    if(!fiche || fiche.timerRunning) return;
+    const now=Date.now();
+    fiche.timerRunning=true;
+    fiche.timerStartAt=now;
+    fiche.timerTotalMs=fiche.timerTotalMs||0;
+
+    await db.collection("fiches").doc(id).set({
+      timerRunning:true,
+      timerStartAt:now
+    },{merge:true});
+  }
+
+  async function stopTimer(id){
+    const fiche=itemsCache.find(x=>x.id===id);
+    if(!fiche || !fiche.timerRunning) return;
+    const now=Date.now();
+    const start=fiche.timerStartAt||now;
+    const prev=fiche.timerTotalMs||0;
+    const total=prev+(now-start);
+    fiche.timerRunning=false;
+    fiche.timerStartAt=null;
+    fiche.timerTotalMs=total;
+
+    await db.collection("fiches").doc(id).set({
+      timerRunning:false,
+      timerStartAt:null,
+      timerTotalMs:total
+    },{merge:true});
+  }
+
+  /* ========= LISTE ========= */
+  function renderList(){
+    const list=document.getElementById('listBody');
+    list.innerHTML='';
+    const immQ=(document.getElementById('qImmat').value||"").toUpperCase();
+    const stQ=document.getElementById('qStatus').value;
+    let n=0;
+
+    itemsCache.forEach(d=>{
+      if(immQ && !(d.immat||'').toUpperCase().includes(immQ)) return;
+      if(stQ && d.status!==stQ) return;
+
+      const row=document.createElement('div');
+      row.className='row';
+      row.style.cssText='justify-content:space-between;border-top:1px solid #23303a;padding:8px 0';
+
+      const timerHtml=`
+        <div class="timer-block">
+          <span class="label">⏱</span>
+          <span id="timer-${d.id}" class="timer-display">00:00:00</span>
+          <button class="timer-btn" onclick="startTimer('${d.id}')">▶</button>
+          <button class="timer-btn" onclick="stopTimer('${d.id}')">■</button>
+        </div>
+      `;
+
+      row.innerHTML=`
+        <div>
+          <strong>${(d.immat||'—').toUpperCase()}</strong> — ${d.model||'—'}
+          <div class="muted">Client: ${d.client||'—'} · KM: ${d.km||'—'} · Mécano: ${d.mech||'—'}</div>
+        </div>
+        <div class="row" style="gap:8px;align-items:center;justify-content:flex-end;">
+          <span class="muted" style="border:1px solid #334155;border-radius:999px;padding:2px 8px">
+            ${d.status==='termine'?'Terminé':'En cours'}
+          </span>
+          ${timerHtml}
+          <button onclick="openEditor('${d.id}')">Ouvrir</button>
+          <button class="danger" onclick="deleteFicheDirect('${d.id}')">🗑️</button>
+        </div>
+      `;
+      list.appendChild(row);
+      n++;
+    });
+
+    document.getElementById('empty').classList.toggle('hidden',n>0);
+  }
+
+  /* ========= ÉDITEUR ========= */
+  let currentId=null;
+  let currentChecks={},currentComments={},currentPneus=[];
+  let editorAutoBound=false;
+
+  function setupCarnet(checks){
+    const okEl=document.getElementById('ce_ok');
+    const badEl=document.getElementById('ce_bad');
+    if(!okEl || !badEl) return;
+
+    okEl.checked = checks["Carnet entretien"]==='ok';
+    badEl.checked = checks["Carnet entretien"]==='bad';
+
+    okEl.onchange=()=>{
+      if(okEl.checked){
+        currentChecks["Carnet entretien"]='ok';
+        scheduleAutoSave();
+      }
+    };
+    badEl.onchange=()=>{
+      if(badEl.checked){
+        currentChecks["Carnet entretien"]='bad';
+        scheduleAutoSave();
+      }
+    };
+  }
+
+  function openEditor(id=null){
+    currentId=id;
+
+    ['f_immat','f_km','f_model','f_date','f_client','f_mech','f_todoNow','f_todoLater','f_obs']
+      .forEach(i=>document.getElementById(i).value="");
+    document.getElementById('f_status').value="en_cours";
+    document.getElementById('partsBody').innerHTML='';
+
+    buildChecklist({},{}); 
+    buildTires([]);
+
+    if(id){
+      const it=itemsCache.find(x=>x.id===id);
+      if(!it) return;
+
+      document.getElementById('f_immat').value=it.immat||"";
+      document.getElementById('f_km').value=it.km||"";
+      document.getElementById('f_model').value=it.model||"";
+      document.getElementById('f_date').value=it.date||"";
+      document.getElementById('f_client').value=it.client||"";
+      document.getElementById('f_mech').value=it.mech||"";
+      document.getElementById('f_status').value=it.status||"en_cours";
+      document.getElementById('f_todoNow').value=(it.todoNow||[]).join("\n");
+      document.getElementById('f_todoLater').value=(it.todoLater||[]).join("\n");
+      document.getElementById('f_obs').value=it.obs||"";
+
+      buildTires(it.pneus||[]);
+      (it.pieces||[]).forEach(p=>addPartRow(p.ref,p.label,p.qte));
+      buildChecklist(it.checks||{},it.comments||{});
+      setupCarnet(it.checks||{});
+
+      document.getElementById('btnDelete').classList.remove('hidden');
+    }else{
+      addPartRow();
+      setupCarnet({});
+      document.getElementById('btnDelete').classList.add('hidden');
+    }
+
+    const editor=document.getElementById('editor');
+    if(!editorAutoBound){
+      editor.addEventListener('input',scheduleAutoSave);
+      editor.addEventListener('change',scheduleAutoSave);
+      editorAutoBound=true;
+    }
+
+    document.getElementById('editor').classList.remove('hidden');
+    document.getElementById('list').classList.add('hidden');
+  }
+
+  function closeEditor(){
+    document.getElementById('editor').classList.add('hidden');
+    document.getElementById('list').classList.remove('hidden');
+    renderList();
+  }
+
+  /* ========= SAVE ========= */
+  async function saveFiche(auto=false){
+    const immat=document.getElementById('f_immat').value.trim().toUpperCase();
+    if(!immat){
+      if(!auto) alert("Immat obligatoire");
+      return;
+    }
+
+    const pieces=Array.from(document.querySelectorAll('#partsBody tr')).map(tr=>{
+      const [r,l,q]=tr.querySelectorAll('input');
+      return {ref:r.value,label:l.value,qte:q.value};
+    }).filter(p=>p.ref||p.label||p.qte);
+
+    const existing=itemsCache.find(x=>x.id===currentId);
+    const createdAt=existing?existing.createdAt:Date.now();
+
+    const timerTotalMs = existing && typeof existing.timerTotalMs==="number" ? existing.timerTotalMs : 0;
+    const timerRunning = existing ? !!existing.timerRunning : false;
+    const timerStartAt = existing && existing.timerStartAt ? existing.timerStartAt : null;
+
+    const payload={
+      id:currentId||('f_'+Date.now()),
+      immat,
+      km:document.getElementById('f_km').value ? Number(document.getElementById('f_km').value) : null,
+      model:document.getElementById('f_model').value,
+      date:document.getElementById('f_date').value,
+      client:document.getElementById('f_client').value,
+      mech:document.getElementById('f_mech').value,
+      status:document.getElementById('f_status').value,
+      todoNow:document.getElementById('f_todoNow').value.split("\n").map(s=>s.trim()).filter(Boolean),
+      todoLater:document.getElementById('f_todoLater').value.split("\n").map(s=>s.trim()).filter(Boolean),
+      obs:document.getElementById('f_obs').value,
+      checks:currentChecks,
+      comments:currentComments,
+      pneus:currentPneus,
+      pieces,
+      createdAt,
+      timerTotalMs,
+      timerRunning,
+      timerStartAt
+    };
+
+    currentId=payload.id;
+
+    await db.collection("fiches").doc(payload.id).set(payload);
+    if(!auto){
+      alert("Fiche enregistrée 💾");
+      closeEditor();
+    }
+  }
+
+  /* ========= DELETE ========= */
+  async function deleteFiche(){
+    if(!currentId) return;
+    if(!confirm("Supprimer ?")) return;
+    await db.collection("fiches").doc(currentId).delete();
+    closeEditor();
+  }
+  async function deleteFicheDirect(id){
+    if(!confirm("Supprimer ?")) return;
+    await db.collection("fiches").doc(id).delete();
+  }
+
+  /* ========= PIÈCES ========= */
+  function addPartRow(ref="",label="",qte="1"){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input value="${ref}"></td>
+      <td><input value="${label}"></td>
+      <td><input type="number" value="${qte}"></td>
+      <td class="no-print"><button class="danger" onclick="this.closest('tr').remove()">🗑️</button></td>
+    `;
+    document.getElementById('partsBody').appendChild(tr);
+  }
+
+  /* ========= CHECKLIST ========= */
+  const DEF=[
+    {icon:"👁️",cat:"VISIBILITÉ",items:["Balais AV/AR","Pare-brise","Rétroviseurs"]},
+    {icon:"💡",cat:"ÉCLAIRAGE",items:["Position","Croisement","Route","Stop","Antibrouillard AV/AR","Recul","Clignotants","Détresse"]},
+    {icon:"🛢️",cat:"NIVEAUX",items:["Lave-glace","Refroidissement","Liquide frein","Huile moteur"]},
+    {icon:"🛑",cat:"FREINAGE",items:["Plaquettes","Disques AV","Assistance freinage","Témoin liquide"]},
+    {icon:"🔧",cat:"DIRECTION",items:["Assistance direction","Volant"]},
+    {icon:"🌀",cat:"AMORTISSEURS",items:["État amortisseurs"]},
+    {icon:"⚙️",cat:"AUTRES",items:["Échappement","Liquide DA","Avertisseur sonore"]}
+  ];
+
+  function buildChecklist(checks={},comments={}){
+    currentChecks={...checks};
+    currentComments={...comments};
+
+    const body=document.getElementById('checkBody');
+    body.innerHTML='';
+
+    DEF.forEach(g=>{
+      const group=document.createElement('tbody');
+      group.className="check-group";
+
+      const head=document.createElement('tr');
+      head.className="check-group-header";
+      head.innerHTML=`
+        <th colspan="4">
+          <span class="icon">${g.icon}</span> ${g.cat}
+          <span class="chevron">▼</span>
+        </th>`;
+      group.appendChild(head);
+
+      const items=document.createElement('tbody');
+      items.className="check-items";
+
+      g.items.forEach(txt=>{
+        const key=g.cat+" | "+txt;
+
+        const ok=document.createElement('input');
+        ok.type="radio"; ok.name=key; ok.checked=checks[key]==='ok';
+
+        const ko=document.createElement('input');
+        ko.type="radio"; ko.name=key; ko.checked=checks[key]==='bad';
+
+        const com=document.createElement('input');
+        com.type="text"; com.className="check-comment"; com.value=comments[key]||"";
+
+        ok.onchange=()=>{currentChecks[key]='ok';};
+        ko.onchange=()=>{currentChecks[key]='bad';};
+        com.onchange=()=>{currentComments[key]=com.value.trim();};
+
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td>${txt}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        `;
+
+        const wrapOk=document.createElement('div');
+        wrapOk.className="cell-choice";
+        const okIcon=document.createElement('span');
+        okIcon.textContent="✅";
+        okIcon.className="col-icon";
+        wrapOk.append(ok,okIcon);
+        tr.children[1].appendChild(wrapOk);
+
+        const wrapBad=document.createElement('div');
+        wrapBad.className="cell-choice";
+        const badIcon=document.createElement('span');
+        badIcon.textContent="❌";
+        badIcon.className="col-icon";
+        wrapBad.append(ko,badIcon);
+        tr.children[2].appendChild(wrapBad);
+
+        tr.children[3].append(com);
+
+        items.appendChild(tr);
+      });
+
+      group.appendChild(items);
+
+      head.onclick=()=>{ group.classList.toggle("open"); };
+
+      body.appendChild(group);
+    });
+  }
+
+  /* ========= PNEUS ========= */
+  const POS=["AVG","AVD","ARG","ARD","RS"];
+  function buildTires(arr){
+    currentPneus=JSON.parse(JSON.stringify(arr||[]));
+    const tb=document.getElementById('tiresBody');
+    tb.innerHTML='';
+
+    POS.forEach(pos=>{
+      const row=currentPneus.find(x=>x.pos===pos)||{pos,etat:"Bon",pression:""};
+
+      const sel=document.createElement('select');
+      ["Bon","Moyen","À remplacer"].forEach(s=>{
+        const o=document.createElement('option');
+        o.value=s; o.textContent=s;
+        if(row.etat===s) o.selected=true;
+        sel.appendChild(o);
+      });
+
+      const pr=document.createElement('input');
+      pr.type="number"; pr.step="0.1"; pr.min="0"; pr.value=row.pression;
+
+      sel.onchange=()=>{
+        const f=currentPneus.find(x=>x.pos===pos);
+        if(f) f.etat=sel.value; else currentPneus.push({pos,etat:sel.value,pression:pr.value});
+      };
+      pr.onchange=()=>{
+        const f=currentPneus.find(x=>x.pos===pos);
+        if(f) f.pression=pr.value; else currentPneus.push({pos,etat:sel.value,pression:pr.value});
+      };
+
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${pos}</td>`;
+      const td2=document.createElement('td'); td2.appendChild(sel);
+      const td3=document.createElement('td'); td3.appendChild(pr);
+      tr.append(td2,td3);
+      tb.appendChild(tr);
+    });
+
+    const block=document.getElementById('pneuBlock');
+    const chev=document.getElementById('pneuChevron');
+    if(block && chev){
+      block.classList.add('collapsed');
+      block.style.display='none';
+      chev.textContent='►';
+    }
+  }
+
+  function togglePneus(){
+    const block=document.getElementById('pneuBlock');
+    const chev=document.getElementById('pneuChevron');
+    if(!block || !chev) return;
+    const collapsed=block.classList.toggle('collapsed');
+    block.style.display=collapsed?'none':'block';
+    chev.textContent=collapsed?'►':'▼';
+  }
+
+  /* ========= EXPORT JSON LOCAL ========= */
+  function exportJSON(){
+    const blob=new Blob([JSON.stringify(itemsCache,null,2)],{type:"application/json"});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download="gcperf_fiches_backup.json";
+    a.click();
+  }
+
+  /* Interval pour mise à jour timer */
+  setInterval(()=>{ nowTs=Date.now(); updateTimers(); },1000);
+
+  /* Lancement écoute Firestore */
+  initRealtime();
+</script>
 </body>
 </html>
